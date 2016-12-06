@@ -1,0 +1,13 @@
+{
+  "name": "yam.set.language",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "dotenv": "^2.0.0",
+    "request": "^2.79.0"
+  }
+}
