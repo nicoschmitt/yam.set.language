@@ -1,27 +1,24 @@
 require('dotenv').config({silent: true});
+
 const request = require('request');
 const nightmare = require('nightmare');
+const qs = require('querystring');
+const Promise = require('bluebird');
 
-var url = 'https://www.yammer.com/api/v1/language';
+Promise.promisifyAll(request);
 
-let options = {
-    locale_type: 'standard',
-    locale: 'fr-FR',
-    language_action: 'switch_language',
-    access_token: '107-Fplhw59Z59SPPZ4hJK0Wg'
-};
-
-var clientid = process.env.YAMMER_CLIENT_ID;
+var clientId = process.env.YAMMER_CLIENT_ID;
+let clientSecret = process.env.YAMMER_CLIENT_SECRET;
 var redirect = process.env.YAMMER_REDIRECT;
 
-var authurl = `https://www.yammer.com/dialog/oauth?client_id=${clientid}&redirect_uri=${redirect}`;
+var authurl = `https://www.yammer.com/dialog/oauth?client_id=${clientId}&redirect_uri=${redirect}`;
 
 let browser = nightmare({
     show: true,
     waitTimeout: 10*60*1000, // 10 min
-    openDevTools: {
-        mode: 'detach'
-    },
+    // openDevTools: {
+    //     mode: 'detach'
+    // },
 })
 
 browser
@@ -31,15 +28,22 @@ browser
         return window.location.hostname == 'www.yammer.com';
     })
     .then(() => {
-        console.log("Auth ok.");
         return browser
                     .goto(authurl)
-                    .wait(function() {
-                        console.log(window.location);
-                        return false;
-                    })    
+                    .wait(function(waitFor) {
+                        return window.location.href.startsWith(waitFor);
+                    }, process.env.YAMMER_REDIRECT)
+                    .evaluate(function() {
+                        return window.location.search;
+                    })
+                    .end()
 
     })
     .then(result => {
-        console.log(result)
-    });
+        let authcode = qs.parse(result.substring(1)).code;
+        var authUrl = `https://www.yammer.com/oauth2/access_token.json?client_id=${clientId}&client_secret=${clientSecret}&code=${authcode}`;
+
+        return request.getAsync(authUrl, { json: true });
+    }).then(result => {
+        console.log(result.body.access_token.token);
+    })

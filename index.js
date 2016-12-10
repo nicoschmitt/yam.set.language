@@ -1,10 +1,10 @@
 require('dotenv').config({silent: true});
 
 const Promise = require("bluebird");
-var request = require('request');
+let request = require('request');
 
-var clientid = process.env.YAMMER_CLIENT_ID;
-var useremail = process.env.USER_EMAIL;
+let clientid = process.env.YAMMER_CLIENT_ID;
+let useremail = process.env.USER_EMAIL;
 
 request = request.defaults({
     auth: {
@@ -38,6 +38,6 @@ request.getAsync(`https://www.yammer.com/api/v1/users/by_email.json?email=${user
             bearer: token
         }
     });
-}).then(response => {
+}).then(() => {
     console.log("done.");
 });
